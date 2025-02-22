@@ -2,19 +2,22 @@
     // Get the current URL
     const url = window.location.href;
 
-    // Extract the course ID using regex
+    // Extract the course ID and institution domain using regex
     const courseIdMatch = url.match(/courses\/(\d+)/);
     const courseId = courseIdMatch ? courseIdMatch[1] : null;
+    const institutionDomain = url.match(/^https?:\/\/([^\/]+)/i)?.[1];
 
-    if (courseId) {
+    if (courseId && institutionDomain) {
         console.log("Course ID:", courseId);
+        console.log("Institution Domain:", institutionDomain);
     } else {
-        console.log("No Course ID found in URL");
+        console.log("Could not extract required information from URL");
+        return;
     }
     let modulesData, assignmentsData, quizzesData, filesData;
 
     try {
-        const modules = await fetch("https://umd.instructure.com/api/v1/courses/" + courseId + "/modules", {
+        const modules = await fetch(`https://${institutionDomain}/api/v1/courses/${courseId}/modules`, {
             method: "GET",
             credentials: "include"
         });
@@ -26,7 +29,7 @@
     }
 
     try {
-        const assignments = await fetch("https://umd.instructure.com/api/v1/courses/" + courseId + "/assignments", {
+        const assignments = await fetch(`https://${institutionDomain}/api/v1/courses/${courseId}/assignments`, {
             method: "GET",
             credentials: "include"
         });
@@ -38,7 +41,7 @@
     }
 
     try {
-        const quizzes = await fetch("https://umd.instructure.com/api/v1/courses/" + courseId + "/quizzes", {
+        const quizzes = await fetch(`https://${institutionDomain}/api/v1/courses/${courseId}/quizzes`, {
             method: "GET",
             credentials: "include"
         });
@@ -50,7 +53,7 @@
     }
 
     try {
-        const files = await fetch("https://umd.instructure.com/api/v1/courses/" + courseId + "/files", {
+        const files = await fetch(`https://${institutionDomain}/api/v1/courses/${courseId}/files`, {
             method: "GET",
             credentials: "include"
         });
