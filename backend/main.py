@@ -5,25 +5,13 @@ import dotenv
 import requests
 from typing import List, Optional, Dict, Any
 from pydantic import BaseModel
-from canvas.canvas import CanvasAPI
-from toolbox.toolbox import ToolBox
-from config import Config
-from tools.tools_definition import tools
 import json
-from tools.get_course_modules import get_course_modules
-from tools.get_course_assignments import get_course_assignments
-from tools.get_course_quizzes import get_course_quizzes
-from tools.get_course_files import get_course_files
-from tools.get_courses import get_courses
-from tools.analyze_course_structure import analyze_course_structure
-import time
+
 dotenv.load_dotenv()
 
 app = FastAPI()
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
-# Create an assistant once during startup
 
 
 from fastapi.middleware.cors import CORSMiddleware
@@ -34,17 +22,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],  # Allows all methods
     allow_headers=["*"],  # Allows all headers
-)
-
-class TokenRequest(BaseModel):
-    token: str
-
-@app.post("/set-token")
-async def set_token(request: TokenRequest):
-    """Set the global Canvas API token"""
-    Config.set_token(request.token)
-    return {"message": "Token set successfully"}
-    
+) 
 
 @app.get("/")
 def read_root():
@@ -60,17 +38,14 @@ class CourseOutlineRequest(BaseModel):
 @app.post("/generate-course-outline")
 async def generate_course_outline(request: CourseOutlineRequest):
     """
-    Generate a course outline for a given course ID using OpenAI Assistants API.
-    First analyzes the course structure, then generates a dynamic schema.
+    Generate a course outline for a given course.
+    Prompt chain:
+    - Initial Analysis: Understand the course structure
+    - Planning: Plan the course outline structure
+    - Organization: Organize the course content into a structure
     """
-    functions_map = {
-        "get_course_modules": get_course_modules,
-        "get_course_assignments": get_course_assignments,
-        "get_course_quizzes": get_course_quizzes,
-        "get_course_files": get_course_files
-    }
 
-    # Step 1: Initial Analysis - Understanding Course Structure
+    # Step 1: Initial Analysis and Understanding Course Structure
     analysis_prompt = {
         "role": "system",
         "content": """You are an expert in education and course design, with deep understanding of how instructors organize their course content.
@@ -224,7 +199,7 @@ IMPORTANT:
 
 Return a JSON object that satisfies these requirements while maintaining a student-friendly organization that matches the instructor's approach.'''
     }
-    
+    # Generate course outline
     messages = [organization_prompt, final_organization]
     final_completion = client.chat.completions.create(
         model="gpt-4o",
@@ -232,7 +207,7 @@ Return a JSON object that satisfies these requirements while maintaining a stude
         response_format={ "type": "json_object" }
     )
     
-    # Parse the response as JSON and return it as a proper JSON object
+    # Return JSON object
     try:
         return json.loads(final_completion.choices[0].message.content)
     except json.JSONDecodeError:
