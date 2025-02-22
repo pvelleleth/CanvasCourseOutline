@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<body>
+    <h2>Canvas Course Outline Generator</h2>
+    <style>
+        button:disabled {
+            background-color: gray;
+            cursor: not-allowed;
+        }
+        
+        .loading {
+            cursor: wait !important;
+            opacity: 0.7;
+        }
+        
+        #loading-spinner {
+            display: none;
+            margin-left: 5px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+    <button id="generate-outline" disabled>
+        <span id="button-text">Generate Outline</span>
+        <span id="loading-spinner">↻</span>
+    </button>
+    <script src="popup.js"></script>
+</body>
+</html>

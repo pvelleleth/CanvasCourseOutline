@@ -1,0 +1,13 @@
+{
+    "manifest_version": 3,
+    "name": "Canvas Course Extractor",
+    "version": "1.0",
+    "permissions": ["activeTab", "storage", "scripting", "downloads"],
+    "host_permissions": ["https://*.instructure.com/*"],
+    "background": {
+      "service_worker": "background.js"
+    },
+    "action": {
+      "default_popup": "popup.html"
+    }
+  }
