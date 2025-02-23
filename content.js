@@ -15,55 +15,85 @@
         return;
     }
     let modulesData, assignmentsData, quizzesData, filesData;
-
+    /* Fill in the above variables with the data from the API
+       Responses from Canvas are paginated so we loop through all pages and concatenate the results
+    */
     try {
-        const modules = await fetch(`https://${institutionDomain}/api/v1/courses/${courseId}/modules`, {
-            method: "GET",
-            credentials: "include"
-        });
-        if (!modules.ok) throw new Error("Modules not found");
-        modulesData = await modules.json();
-        modulesData = JSON.stringify(modulesData);
+        let modulesAll = [];
+        let apiUrl = `https://${institutionDomain}/api/v1/courses/${courseId}/modules?per_page=100`;
+        while (apiUrl) {
+            const modules = await fetch(apiUrl, {
+                method: "GET",
+                credentials: "include"
+            });
+            if (!modules.ok) throw new Error("Modules not found");
+            modulesData = await modules.json();
+            modulesAll = modulesAll.concat(modulesData);
+            const nextPage = modules.headers.get("Link").match(/<([^>]+)>;\s*rel="next"/);
+            apiUrl = nextPage ? nextPage[1] : null;
+        }
+        modulesData = JSON.stringify(modulesAll);
     } catch (error) {
         modulesData = "Modules do not exist for this course";
     }
 
-    try {
-        const assignments = await fetch(`https://${institutionDomain}/api/v1/courses/${courseId}/assignments`, {
-            method: "GET",
-            credentials: "include"
-        });
-        if (!assignments.ok) throw new Error("Assignments not found");
-        assignmentsData = await assignments.json();
-        assignmentsData = JSON.stringify(assignmentsData);
+    try {   
+        let assignmentsAll = [];
+        let apiUrl = `https://${institutionDomain}/api/v1/courses/${courseId}/assignments?per_page=100`;
+        while (apiUrl) {
+            const assignments = await fetch(apiUrl, {
+                method: "GET",
+                credentials: "include"
+            });
+            if (!assignments.ok) throw new Error("Assignments not found");
+            assignmentsData = await assignments.json();
+            assignmentsAll = assignmentsAll.concat(assignmentsData);
+            const nextPage = assignments.headers.get("Link").match(/<([^>]+)>;\s*rel="next"/);
+            apiUrl = nextPage ? nextPage[1] : null;
+        }
+        assignmentsData = JSON.stringify(assignmentsAll);
     } catch (error) {
         assignmentsData = "Assignments do not exist for this course";
     }
 
-    try {
-        const quizzes = await fetch(`https://${institutionDomain}/api/v1/courses/${courseId}/quizzes`, {
-            method: "GET",
-            credentials: "include"
-        });
-        if (!quizzes.ok) throw new Error("Quizzes not found");
-        quizzesData = await quizzes.json();
-        quizzesData = JSON.stringify(quizzesData);
+    try {   
+        let quizzesAll = [];
+        let apiUrl = `https://${institutionDomain}/api/v1/courses/${courseId}/quizzes?per_page=100`;
+        while (apiUrl) {
+            const quizzes = await fetch(apiUrl, {
+                method: "GET",
+                credentials: "include"
+            });
+            if (!quizzes.ok) throw new Error("Quizzes not found");
+            quizzesData = await quizzes.json();
+            quizzesAll = quizzesAll.concat(quizzesData);
+            const nextPage = quizzes.headers.get("Link").match(/<([^>]+)>;\s*rel="next"/);
+            apiUrl = nextPage ? nextPage[1] : null;
+        }
+        quizzesData = JSON.stringify(quizzesAll);
     } catch (error) {
         quizzesData = "Quizzes do not exist for this course";
     }
 
-    try {
-        const files = await fetch(`https://${institutionDomain}/api/v1/courses/${courseId}/files`, {
-            method: "GET",
-            credentials: "include"
-        });
-        if (!files.ok) throw new Error("Files not found");
-        filesData = await files.json();
-        filesData = JSON.stringify(filesData);
+    try {   
+        let filesAll = [];
+        let apiUrl = `https://${institutionDomain}/api/v1/courses/${courseId}/files?per_page=100`;
+        while (apiUrl) {
+            const files = await fetch(apiUrl, {
+                method: "GET",
+                credentials: "include"
+            });
+            if (!files.ok) throw new Error("Files not found");
+            filesData = await files.json();
+            filesAll = filesAll.concat(filesData);
+            const nextPage = files.headers.get("Link").match(/<([^>]+)>;\s*rel="next"/);
+            apiUrl = nextPage ? nextPage[1] : null;
+        }
+        filesData = JSON.stringify(filesAll);
     } catch (error) {
         filesData = "Files do not exist for this course";
     }
-
+    // Send the data to the backend to generate the course outline
     const response = await fetch("http://localhost:8000/generate-course-outline", {
         method: "POST",
         headers: {
